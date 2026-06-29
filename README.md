@@ -74,6 +74,24 @@ Run the live two-sum loop (the worked example below):
 python run_loop.py
 ```
 
+## LLM-driven loop (the intended pattern)
+
+`run_demo.py` and `run_loop.py` replay pre-written candidates. The loop is meant
+to be driven by an LLM acting as the **architect** (proposer): give the model
+`AGENT_PROMPT.md` as its system prompt, then on each turn send it the target
+source, the baseline time, and the running ledger. The model replies with a
+`<transform>` block; you extract the candidate, run it through `evaluate()`
+(passing its source via `src=...` so the `banned` check fires), record the typed
+verdict in the `Ledger`, and feed that verdict back to the model. Repeat until
+the model emits `no_further_transformations`, a turn cap is hit, or the
+best-so-far stalls.
+
+This repo does not ship a runnable driver for that loop — `evaluate()` and the
+`Ledger` are the building blocks; wire them to whichever LLM client you use.
+
+> **Safety:** a candidate returned by a model is arbitrary code. If you evaluate
+> it in-process, do so only in a trusted environment, on a target you control.
+
 ## Defining a target (the `Task` schema)
 
 A target is a `Task` (defined in `harness.py`). You supply a trusted reference, an
